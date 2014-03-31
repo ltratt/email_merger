@@ -41,12 +41,12 @@ DEFAULT_POST_SENDMAIL_DELAY = 1
 
 def usage(msg = None):
 
-	if msg is None:
-		msg = ""
-	else:
-		msg = msg + "\n\n"
+    if msg is None:
+        msg = ""
+    else:
+        msg = msg + "\n\n"
 
-	print """%s%s [-e] [-d] [-o <dir>] <template file> <substitution file>
+    print """%s%s [-e] [-d] [-o <dir>] <template file> <substitution file>
 %s
 
 This program takes in a template e-mail message and a substition file. The
@@ -84,183 +84,183 @@ individual files in 'dir'. The -o flag can be used with either the -d or -e
 modes of execution.
 
 As %s runs, it prints out the addresses e-mails are being sent to.""" % (msg, PROG_NAME, PROG_COPYRIGHT, PROG_NAME, PROG_VERSION, PROG_NAME)
-	sys.exit(1)
+    sys.exit(1)
 
 
 
 
 class Merger:
 
-	def __init__(self):
+    def __init__(self):
 
-		opts, args = getopt.getopt(sys.argv[1 : ], "edho:")
+        opts, args = getopt.getopt(sys.argv[1 : ], "edho:")
 
-		self._sendmail = DEFAULT_SENDMAIL
-		self._post_sendmail_delay = DEFAULT_POST_SENDMAIL_DELAY	
-		config_path = os.path.expandvars(CONFIG_PATH)
-		if os.path.exists(config_path):
-			config = imp.load_source("config", config_path)
-			if hasattr(config, "sendmail"):
-				self._sendmail = config.sendmail
-			if hasattr(config, "post_sendmail_delay"):
-				self._post_sendmail_delay = config.post_sendmail_delay
-	
-		self._edit_emails = 0
-		self._do_send = 1
-		self._output_dir = None
-		for opt in opts:
-			if opt[0] == "-e":
-				self._edit_emails = 1
-			elif opt[0] == "-d":
-				self._do_send = 0
-			elif opt[0] == "-o":
-				self._output_dir = opt[1]
-				if not os.path.isdir(self._output_dir):
-					self._error("Directory '%s' does not exist or is not a directory." % self._output_dir)
-			elif opt[0] == "-h":
-				usage()
-			else:
-				usage("Error: Unknown arg '%s'" % opt[0])
-		
-		if len(args) != 2:
-			usage("Error: Not enough args")
-		
-		self._read_template_file(args[0])
-		self._read_substitution_file(args[1])
-		
-		if self._output_dir is not None:
-			dummy_files = []
-		
-		count = 0
-		for values in self._substitution_values:
-			substituted = self._substitute(values)
-			msg = self._make_email(substituted)
-			
-			if self._edit_emails == 1:
-				msg_string = self._email_to_string(msg)
+        self._sendmail = DEFAULT_SENDMAIL
+        self._post_sendmail_delay = DEFAULT_POST_SENDMAIL_DELAY 
+        config_path = os.path.expandvars(CONFIG_PATH)
+        if os.path.exists(config_path):
+            config = imp.load_source("config", config_path)
+            if hasattr(config, "sendmail"):
+                self._sendmail = config.sendmail
+            if hasattr(config, "post_sendmail_delay"):
+                self._post_sendmail_delay = config.post_sendmail_delay
+    
+        self._edit_emails = 0
+        self._do_send = 1
+        self._output_dir = None
+        for opt in opts:
+            if opt[0] == "-e":
+                self._edit_emails = 1
+            elif opt[0] == "-d":
+                self._do_send = 0
+            elif opt[0] == "-o":
+                self._output_dir = opt[1]
+                if not os.path.isdir(self._output_dir):
+                    self._error("Directory '%s' does not exist or is not a directory." % self._output_dir)
+            elif opt[0] == "-h":
+                usage()
+            else:
+                usage("Error: Unknown arg '%s'" % opt[0])
+        
+        if len(args) != 2:
+            usage("Error: Not enough args")
+        
+        self._read_template_file(args[0])
+        self._read_substitution_file(args[1])
+        
+        if self._output_dir is not None:
+            dummy_files = []
+        
+        count = 0
+        for values in self._substitution_values:
+            substituted = self._substitute(values)
+            msg = self._make_email(substituted)
+            
+            if self._edit_emails == 1:
+                msg_string = self._email_to_string(msg)
 
-				tf_fno, tf_path = tempfile.mkstemp()
-				os.write(tf_fno, msg_string)
-				os.close(tf_fno)
-				rtn = os.system("$EDITOR %s" % tf_path)
-				if rtn != 0:
-					self._error("$EDITOR returned %d." % (path, rtn))
-				file = open(tf_path, "r")
-				msg_string = file.read(-1)
-				file.close()
-				
-				msg = email.message_from_string(msg_string)
+                tf_fno, tf_path = tempfile.mkstemp()
+                os.write(tf_fno, msg_string)
+                os.close(tf_fno)
+                rtn = os.system("$EDITOR %s" % tf_path)
+                if rtn != 0:
+                    self._error("$EDITOR returned %d." % (path, rtn))
+                file = open(tf_path, "r")
+                msg_string = file.read(-1)
+                file.close()
+                
+                msg = email.message_from_string(msg_string)
 
-			if self._output_dir is not None:
-				msg_string = self._email_to_string(msg)
-				path = os.path.join(self._output_dir, `count + 1`)
-				if os.path.exists(path):
-					self._error("File '%s' already exists." % path)
-				output_file = open(path, "w")
-				output_file.write(msg_string)
-				output_file.close()
-			
-			all_sender_addresses = self._get_sender_addresses(msg)
-			all_sender_addresses_emails = [x[1] for x in all_sender_addresses]
-			print ", ".join(all_sender_addresses_emails)
+            if self._output_dir is not None:
+                msg_string = self._email_to_string(msg)
+                path = os.path.join(self._output_dir, `count + 1`)
+                if os.path.exists(path):
+                    self._error("File '%s' already exists." % path)
+                output_file = open(path, "w")
+                output_file.write(msg_string)
+                output_file.close()
+            
+            all_sender_addresses = self._get_sender_addresses(msg)
+            all_sender_addresses_emails = [x[1] for x in all_sender_addresses]
+            print ", ".join(all_sender_addresses_emails)
 
-			if msg.has_key("BCC"):
-				del msg["BCC"]
+            if msg.has_key("BCC"):
+                del msg["BCC"]
 
-			if self._do_send:
-				msg_string = self._email_to_string(msg)
-				sendmail = popen2.Popen3("%s %s" % (self._sendmail, " ".join(all_sender_addresses_emails)), 1)
-				sendmail.tochild.write(msg_string)
-				sendmail.tochild.close()
-				rtn = sendmail.wait()
-				if rtn != 0:
-					self._error("%s returned %d" % (self._sendmail, rtn))
-				time.sleep(self._post_sendmail_delay)
-			
-			count += 1
-
-
-
-	def _error(self, msg):
-	
-		print msg
-		sys.exit(1)
+            if self._do_send:
+                msg_string = self._email_to_string(msg)
+                sendmail = popen2.Popen3("%s %s" % (self._sendmail, " ".join(all_sender_addresses_emails)), 1)
+                sendmail.tochild.write(msg_string)
+                sendmail.tochild.close()
+                rtn = sendmail.wait()
+                if rtn != 0:
+                    self._error("%s returned %d" % (self._sendmail, rtn))
+                time.sleep(self._post_sendmail_delay)
+            
+            count += 1
 
 
 
-	def _read_template_file(self, template_path):
-	
-		tf = open(template_path, "r")
-		self._template = tf.read(-1)
-		tf.close()
+    def _error(self, msg):
+    
+        print msg
+        sys.exit(1)
 
 
 
-	def _read_substitution_file(self, substitution_path):
-	
-		sf = open(substitution_path, "r")
-		
-		self._substitution_keys = [x.strip() for x in sf.readline().split("\t")]
-
-		# Line number count begins at 2 since line 1 is the substitution keys
-		i = 2
-		self._substitution_values = []
-		for l in sf.readlines():
-			if l.strip() == "":
-				continue
-			values = [x.strip() for x in l.strip().split("\t")]
-			if len(values) != len(self._substitution_keys):
-				self._error("Incorrect number of values at line %s" % `i`)
-			self._substitution_values.append(values)
-			i += 1
+    def _read_template_file(self, template_path):
+    
+        tf = open(template_path, "r")
+        self._template = tf.read(-1)
+        tf.close()
 
 
 
-	def _substitute(self, values):
-	
-		substituted = self._template
-		i = 0
-		for i in range(0, len(self._substitution_keys)):
-			substituted = substituted.replace("${%s}" % self._substitution_keys[i], values[i])
-		
-		return substituted
+    def _read_substitution_file(self, substitution_path):
+    
+        sf = open(substitution_path, "r")
+        
+        self._substitution_keys = [x.strip() for x in sf.readline().split("\t")]
+
+        # Line number count begins at 2 since line 1 is the substitution keys
+        i = 2
+        self._substitution_values = []
+        for l in sf.readlines():
+            if l.strip() == "":
+                continue
+            values = [x.strip() for x in l.strip().split("\t")]
+            if len(values) != len(self._substitution_keys):
+                self._error("Incorrect number of values at line %s" % `i`)
+            self._substitution_values.append(values)
+            i += 1
 
 
 
-	def _make_email(self, substituted):
-	
-		msg = email.message_from_string(substituted)
-		if "Date" not in msg:
-			msg["Date"] = time.strftime("%a, %d %b %Y %H:%M:%S %z")
-		if "User-Agent" not in msg:
-			msg["User-Agent"] = "%s %s" % (PROG_NAME, PROG_VERSION)
-		
-		return msg
+    def _substitute(self, values):
+    
+        substituted = self._template
+        i = 0
+        for i in range(0, len(self._substitution_keys)):
+            substituted = substituted.replace("${%s}" % self._substitution_keys[i], values[i])
+        
+        return substituted
 
 
 
-	def _email_to_string(self, msg):
-	
-		fp = StringIO()
-		g = email.Generator.Generator(fp, mangle_from_=False, maxheaderlen=60)
-		g.flatten(msg)
-		
-		return fp.getvalue()
+    def _make_email(self, substituted):
+    
+        msg = email.message_from_string(substituted)
+        if "Date" not in msg:
+            msg["Date"] = time.strftime("%a, %d %b %Y %H:%M:%S %z")
+        if "User-Agent" not in msg:
+            msg["User-Agent"] = "%s %s" % (PROG_NAME, PROG_VERSION)
+        
+        return msg
 
 
 
-	def _get_sender_addresses(self, msg):
+    def _email_to_string(self, msg):
+    
+        fp = StringIO()
+        g = email.Generator.Generator(fp, mangle_from_=False, maxheaderlen=60)
+        g.flatten(msg)
+        
+        return fp.getvalue()
 
-		tos = msg.get_all("to", [])
-		ccs = msg.get_all("cc", [])
-		bccs = msg.get_all("bcc", [])
-		resent_tos = msg.get_all("resent-to", [])
-		resent_ccs = msg.get_all("resent-cc", [])
-		
-		return email.Utils.getaddresses(tos + ccs + bccs + resent_tos + resent_ccs)
+
+
+    def _get_sender_addresses(self, msg):
+
+        tos = msg.get_all("to", [])
+        ccs = msg.get_all("cc", [])
+        bccs = msg.get_all("bcc", [])
+        resent_tos = msg.get_all("resent-to", [])
+        resent_ccs = msg.get_all("resent-cc", [])
+        
+        return email.Utils.getaddresses(tos + ccs + bccs + resent_tos + resent_ccs)
 
 
 
 
 if __name__ == "__main__":
-	Merger()
+    Merger()

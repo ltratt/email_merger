@@ -1,17 +1,17 @@
 #! /usr/bin/env python
 
 # Copyright (c) 2005-2007 Laurence Tratt
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
 # deal in the Software without restriction, including without limitation the
 # rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 # sell copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -54,7 +54,7 @@ substitution file starts with a tab separated list of substitution names
 which define keys which will be replaced in the template. Each subsequent
 line of the substitution file specifies particular values for these keys.
 Blank lines in the substituion file are ignored. A new e-mail will be
-generated and sent for each line in the substitution file. 
+generated and sent for each line in the substitution file.
 
 The template file should be a properly formatted e-mail message e.g. one
 or more headers followed by a blank line and then the message body.
@@ -96,7 +96,7 @@ class Merger:
         opts, args = getopt.getopt(sys.argv[1 : ], "edho:")
 
         self._sendmail = DEFAULT_SENDMAIL
-        self._post_sendmail_delay = DEFAULT_POST_SENDMAIL_DELAY 
+        self._post_sendmail_delay = DEFAULT_POST_SENDMAIL_DELAY
         config_path = os.path.expandvars(CONFIG_PATH)
         if os.path.exists(config_path):
             config = imp.load_source("config", config_path)
@@ -104,7 +104,7 @@ class Merger:
                 self._sendmail = config.sendmail
             if hasattr(config, "post_sendmail_delay"):
                 self._post_sendmail_delay = config.post_sendmail_delay
-    
+
         self._edit_emails = 0
         self._do_send = 1
         self._output_dir = None
@@ -121,21 +121,21 @@ class Merger:
                 usage()
             else:
                 usage("Error: Unknown arg '%s'" % opt[0])
-        
+
         if len(args) != 2:
             usage("Error: Not enough args")
-        
+
         self._read_template_file(args[0])
         self._read_substitution_file(args[1])
-        
+
         if self._output_dir is not None:
             dummy_files = []
-        
+
         count = 0
         for values in self._substitution_values:
             substituted = self._substitute(values)
             msg = self._make_email(substituted)
-            
+
             if self._edit_emails == 1:
                 msg_string = self._email_to_string(msg)
 
@@ -148,7 +148,7 @@ class Merger:
                 file = open(tf_path, "r")
                 msg_string = file.read(-1)
                 file.close()
-                
+
                 msg = email.message_from_string(msg_string)
 
             if self._output_dir is not None:
@@ -159,7 +159,7 @@ class Merger:
                 output_file = open(path, "w")
                 output_file.write(msg_string)
                 output_file.close()
-            
+
             all_sender_addresses = self._get_sender_addresses(msg)
             all_sender_addresses_emails = [x[1] for x in all_sender_addresses]
             print ", ".join(all_sender_addresses_emails)
@@ -176,20 +176,20 @@ class Merger:
                 if rtn != 0:
                     self._error("%s returned %d" % (self._sendmail, rtn))
                 time.sleep(self._post_sendmail_delay)
-            
+
             count += 1
 
 
 
     def _error(self, msg):
-    
+
         print msg
         sys.exit(1)
 
 
 
     def _read_template_file(self, template_path):
-    
+
         tf = open(template_path, "r")
         self._template = tf.read(-1)
         tf.close()
@@ -197,9 +197,9 @@ class Merger:
 
 
     def _read_substitution_file(self, substitution_path):
-    
+
         sf = open(substitution_path, "r")
-        
+
         self._substitution_keys = [x.strip() for x in sf.readline().split("\t")]
 
         # Line number count begins at 2 since line 1 is the substitution keys
@@ -217,34 +217,34 @@ class Merger:
 
 
     def _substitute(self, values):
-    
+
         substituted = self._template
         i = 0
         for i in range(0, len(self._substitution_keys)):
             substituted = substituted.replace("${%s}" % self._substitution_keys[i], values[i])
-        
+
         return substituted
 
 
 
     def _make_email(self, substituted):
-    
+
         msg = email.message_from_string(substituted)
         if "Date" not in msg:
             msg["Date"] = time.strftime("%a, %d %b %Y %H:%M:%S %z")
         if "User-Agent" not in msg:
             msg["User-Agent"] = "%s %s" % (PROG_NAME, PROG_VERSION)
-        
+
         return msg
 
 
 
     def _email_to_string(self, msg):
-    
+
         fp = StringIO()
         g = email.Generator.Generator(fp, mangle_from_=False, maxheaderlen=60)
         g.flatten(msg)
-        
+
         return fp.getvalue()
 
 
@@ -256,7 +256,7 @@ class Merger:
         bccs = msg.get_all("bcc", [])
         resent_tos = msg.get_all("resent-to", [])
         resent_ccs = msg.get_all("resent-cc", [])
-        
+
         return email.Utils.getaddresses(tos + ccs + bccs + resent_tos + resent_ccs)
 
 

@@ -1,0 +1,4 @@
+# Simple example of a $HOME/.email_merger file
+
+sendmail = "/usr/bin/ssh -q -C -l myuser remote.com /usr/sbin/sendmail -oem -oi"
+post_sendmail_delay = 5

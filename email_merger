@@ -36,8 +36,11 @@ CONFIG_PATH = "$HOME/.email_merger"
 DEFAULT_SENDMAIL = "/usr/sbin/sendmail -oem -oi"
 DEFAULT_POST_SENDMAIL_DELAY = 1
 
-
-
+# Try to detect the user's text editor of choice
+try:
+    EDITOR = os.environ["EDITOR"]
+except KeyError:
+    EDITOR = "vi"
 
 def usage(msg = None):
 
@@ -142,9 +145,9 @@ class Merger:
                 tf_fno, tf_path = tempfile.mkstemp()
                 os.write(tf_fno, msg_string)
                 os.close(tf_fno)
-                rtn = os.system("$EDITOR %s" % tf_path)
+                rtn = os.system("%s %s" % (EDITOR, tf_path))
                 if rtn != 0:
-                    self._error("$EDITOR returned %d." % (path, rtn))
+                    self._error("$EDITOR '%s' returned %d." % (EDITOR, rtn))
                 file = open(tf_path, "r")
                 msg_string = file.read(-1)
                 file.close()

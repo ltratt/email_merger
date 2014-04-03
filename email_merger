@@ -27,7 +27,7 @@ from cStringIO import StringIO
 
 
 
-PROG_NAME = "email_merger"
+PROG_NAME = sys.argv[0]
 PROG_VERSION = "0.07 (2007/04/08)"
 PROG_COPYRIGHT = "Copyright (C) Laurence Tratt 2005-2007"
 
